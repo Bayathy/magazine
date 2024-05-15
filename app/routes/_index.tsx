@@ -1,4 +1,10 @@
-import type { MetaFunction } from "@remix-run/cloudflare";
+import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
+import { json } from "@remix-run/cloudflare";
+import { useLoaderData } from "@remix-run/react";
+import { createBrowserClient } from "@supabase/ssr";
+
+import { Button } from "~/components/ui/button";
+import { createSupabaseServerClient } from "~/lib/supabase/supabase.server";
 
 export const meta: MetaFunction = () => {
   return [
@@ -10,6 +16,23 @@ export const meta: MetaFunction = () => {
   ];
 };
 
+export async function loader({ context }: LoaderFunctionArgs) {
+  const env = {
+    SUPABASE_URL: context.cloudflare.env.SUPABASE_URL,
+    SUPABASE_ANON_KEY: context.cloudflare.env.SUPABASE_ANON_KEY,
+  };
+
+  return json({
+    env,
+  });
+}
+
 export default function Index() {
-  return <div className="text-red-500"></div>;
+  const { env } = useLoaderData<typeof loader>();
+  const supabase = createBrowserClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
+  return (
+    <div className="text-red-500">
+      <Button>login</Button>
+    </div>
+  );
 }
